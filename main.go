@@ -1,17 +1,21 @@
 package main
 
 import (
-    "github.com/gin-gonic/gin"
+    "fmt"
+    "network-monitor/db"
+    "network-monitor/pinger"
+    "time"
 )
 
 func main() {
-    r := gin.Default()
+    db.InitRedis()
+    fmt.Println("Starting periodic ping...")
 
-    r.GET("/", func(c *gin.Context) {
-        c.JSON(200, gin.H{
-            "message": "Hello, Gin!",
-        })
-    })
+    ticker := time.NewTicker(10 * time.Second)
+    defer ticker.Stop()
 
-    r.Run() // Runs on :8080 by default
+    for {
+        <-ticker.C
+        pinger.PingAll()
+    }
 }
