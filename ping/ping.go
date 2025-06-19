@@ -7,10 +7,11 @@ import (
     "network-monitor/config"
     "network-monitor/db"
     "network-monitor/models"
+	"network-monitor/store"
 )
 
 func PingAll() {
-    for _, ip := range config.IPList {
+    for _, ip := range store.GetAllIPs {
         go pingDevice(ip)
     }
 }
