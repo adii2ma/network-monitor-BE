@@ -11,6 +11,7 @@ import (
 )
 
 func PingAll() {
+    fmt.Println("PingAll called at", time.Now())
     ips, err := store.GetAllIPs()
     if err != nil {
         log.Println("Failed to get IPs from store:", err)
@@ -25,6 +26,12 @@ func PingAll() {
 func pingDevice(ip string) {
     timeout := 1 * time.Second
     _, err := net.DialTimeout("ip4:icmp", ip, timeout)
+    online :=err == nil 
+    if online {
+        fmt.Printf("[✓] %s is online\n", ip)
+    } else {
+        fmt.Printf("[✗] %s is offline\n", ip)
+    }
 
     status := models.DeviceStatus{
         IP:       ip,
