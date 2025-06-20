@@ -35,7 +35,7 @@ func pingDevice(ip string) {
 
     status := models.DeviceStatus{
         IP:       ip,
-        Online:   err == nil,
+        Online:   online,
         LastSeen: time.Now().Unix(),
     }
 
