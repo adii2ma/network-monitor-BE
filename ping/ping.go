@@ -4,14 +4,20 @@ import (
     "fmt"
     "net"
     "time"
-    "network-monitor/config"
-    "network-monitor/db"
-    "network-monitor/models"
-	"network-monitor/store"
+    "log"
+    "backend/db"
+    "backend/models"
+	"backend/store"
 )
 
 func PingAll() {
-    for _, ip := range store.GetAllIPs {
+    ips, err := store.GetAllIPs()
+    if err != nil {
+        log.Println("Failed to get IPs from store:", err)
+        return
+    }
+
+    for _, ip := range ips {
         go pingDevice(ip)
     }
 }

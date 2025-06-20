@@ -1,7 +1,7 @@
 package store
 
 import (
-    "network-monitor/db"
+    "backend/db"
 )
 
 func AddIP(ip string) error {

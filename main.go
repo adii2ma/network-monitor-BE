@@ -2,20 +2,37 @@ package main
 
 import (
     "fmt"
-    "network-monitor/db"
-    "network-monitor/pinger"
+    "net/http"
+    "backend/api"
+    "backend/db"
+    "backend/ping"
     "time"
 )
 
 func main() {
     db.InitRedis()
-    fmt.Println("Starting periodic ping...")
+    fmt.Println("Server started at :8080")
 
-    ticker := time.NewTicker(10 * time.Second)
-    defer ticker.Stop()
+    // Start periodic ping in a goroutine
+    go func() {
+        fmt.Println("Starting periodic ping...")
+        ticker := time.NewTicker(10 * time.Second)
+        defer ticker.Stop()
 
-    for {
-        <-ticker.C
-        pinger.PingAll()
+        for {
+            <-ticker.C
+            pinger.PingAll()
+        }
+    }()
+
+    // Start HTTP server (blocks main thread)
+    http.HandleFunc("/add", api.AddHandler)
+    http.HandleFunc("/delete", api.DeleteHandler)
+    http.HandleFunc("/status", api.StatusHandler)
+
+    // If ListenAndServe fails, log the error
+    if err := http.ListenAndServe(":8080", nil); err != nil {
+        fmt.Println("Server error:", err)
     }
 }
+
