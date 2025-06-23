@@ -5,7 +5,13 @@ import (
 )
 
 func AddIP(ip string) error {
-    return db.RDB.SAdd(db.Ctx, "devices", ip).Err()
+    err := db.RDB.SAdd(db.Ctx, "devices", ip).Err()
+    if err != nil {
+        return err
+    }
+    // Set default status: offline, last_seen = 0
+    key := "device:" + ip
+    return db.RDB.HSet(db.Ctx, key, "online", "false", "last_seen", "0").Err()
 }
 
 func DeleteIP(ip string) error {

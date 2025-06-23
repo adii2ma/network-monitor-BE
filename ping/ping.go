@@ -2,9 +2,10 @@ package pinger
 
 import (
     "fmt"
-    "net"
+    
     "time"
     "log"
+    "github.com/go-ping/ping"
     "backend/db"
     "backend/models"
 	"backend/store"
@@ -24,9 +25,24 @@ func PingAll() {
 }
 
 func pingDevice(ip string) {
-    timeout := 1 * time.Second
-    _, err := net.DialTimeout("ip4:icmp", ip, timeout)
-    online :=err == nil 
+    pinger, err := ping.NewPinger(ip)
+    if err != nil {
+        log.Printf("Failed to create pinger for %s: %v\n", ip, err)
+        return
+    }
+
+    pinger.Count = 1
+    pinger.Timeout = time.Second
+    pinger.SetPrivileged(true) // May require root/admin on some OSes
+
+    err = pinger.Run()
+    if err != nil {
+        log.Printf("Ping error for %s: %v\n", ip, err)
+    }
+
+    stats := pinger.Statistics()
+    online := stats.PacketsRecv > 0
+
     if online {
         fmt.Printf("[✓] %s is online\n", ip)
     } else {
@@ -40,8 +56,5 @@ func pingDevice(ip string) {
     }
 
     key := fmt.Sprintf("device:%s", ip)
-    db.RDB.HSet(db.Ctx, key, map[string]interface{}{
-        "online":    status.Online,
-        "last_seen": status.LastSeen,
-    })
+    db.RDB.HSet(db.Ctx, key, "online", status.Online, "last_seen", status.LastSeen)
 }

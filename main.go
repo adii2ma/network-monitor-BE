@@ -29,6 +29,7 @@ func main() {
     http.HandleFunc("/add", api.AddHandler)
     http.HandleFunc("/delete", api.DeleteHandler)
     http.HandleFunc("/status", api.StatusHandler)
+    http.HandleFunc("/logs", api.LogsHandler)
 
     // If ListenAndServe fails, log the error
     if err := http.ListenAndServe(":8080", nil); err != nil {
