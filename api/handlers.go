@@ -11,15 +11,22 @@ import (
 
 func AddHandler(w http.ResponseWriter, r *http.Request) {
     ip := r.URL.Query().Get("ip")
+    location := r.URL.Query().Get("location")
+    
     if ip == "" {
         http.Error(w, "Missing ?ip= parameter", http.StatusBadRequest)
         return
     }
-    if err := store.AddIP(ip); err != nil {
+    if location == "" {
+        http.Error(w, "Missing ?location= parameter", http.StatusBadRequest)
+        return
+    }
+    
+    if err := store.AddIP(ip, location); err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
-    fmt.Fprintf(w, "Added IP: %s\n", ip)
+    fmt.Fprintf(w, "Added IP: %s with location: %s\n", ip, location)
 }
 
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +58,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
             vals = map[string]string{
                 "online":    "false",
                 "last_seen": "0",
+                "location":  "Location not set",
             }
         }
         result[ip] = vals
@@ -79,11 +87,13 @@ func logStatusChange(ip string, status map[string]string) {
     timestamp := time.Now().Format("2006-01-02 15:04:05")
     online := status["online"]
     lastSeen := status["last_seen"]
+    location := status["location"]
     
-    logEntry := fmt.Sprintf("[%s] %s: %s (Last seen: %s)", 
+    logEntry := fmt.Sprintf("[%s] %s: %s (Last seen: %s, Location: %s)", 
         timestamp, ip, 
         map[string]string{"true": "Online", "false": "Offline"}[online],
-        time.Unix(parseInt64(lastSeen), 0).Format("15:04:05"))
+        time.Unix(parseInt64(lastSeen), 0).Format("15:04:05"),
+        location)
     
     // Add to logs list (keep only last 1000 entries)
     db.RDB.LPush(db.Ctx, "logs", logEntry)

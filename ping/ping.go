@@ -48,13 +48,29 @@ func pingDevice(ip string) {
     } else {
         fmt.Printf("[✗] %s is offline\n", ip)
     }
+     
+    // Get existing location to preserve it
+    key := fmt.Sprintf("device:%s", ip)
+    existingLocation, err := db.RDB.HGet(db.Ctx, key, "location").Result()
+    if err != nil {
+        // If location doesn't exist, use default
+        existingLocation = "Location not set"
+    }
 
     status := models.DeviceStatus{
         IP:       ip,
         Online:   online,
+        Location: existingLocation,
         LastSeen: time.Now().Unix(),
     }
 
-    key := fmt.Sprintf("device:%s", ip)
-    db.RDB.HSet(db.Ctx, key, "online", status.Online, "last_seen", status.LastSeen)
+    fields := []interface{}{
+        "online", fmt.Sprintf("%v", status.Online),
+        "last_seen", fmt.Sprintf("%d", status.LastSeen),
+        "location", status.Location,
+    }
+    err = db.RDB.HMSet(db.Ctx, key, fields...).Err()
+    if err != nil {
+        log.Printf("Failed to update status for %s in Redis: %v\n", ip, err)
+    }
 }
