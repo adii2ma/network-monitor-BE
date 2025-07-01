@@ -5,4 +5,5 @@ type DeviceStatus struct {
     Online   bool   `json:"online"`
     Location string `json:"location"`
     LastSeen int64  `json:"last_seen"`
+    logs     string `json:"logs"` 
 }
