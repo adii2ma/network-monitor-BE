@@ -62,7 +62,7 @@ func pingDevice(ip string) {
 		log.Printf("Failed to update status for %s: %v\n", ip, err)
 		return
 	}
-
+	 
 	// Update location separately if needed (since UpdateDeviceStatus doesn't handle location)
 	err = db.RDB.HMSet(db.Ctx, key, "location", existingLocation).Err()
 	if err != nil {

@@ -50,7 +50,14 @@ func UpdateDeviceStatus(ip string, online bool) error {
 	fields := []interface{}{
 		"online", fmt.Sprintf("%t", online),
 		"last_seen", fmt.Sprintf("%d", timestamp),
+		 
 	}
+	location, err := db.RDB.HGet(db.Ctx, key, "location").Result()
+	if err != nil {
+		log.Printf("Error fetching location for IP %s: %v", ip, err)
+		 
+	}
+	fmt.Printf("Device %s is located at: %s\n", ip, location)
 
 	err = db.RDB.HMSet(db.Ctx, key, fields...).Err()
 	if err != nil {
