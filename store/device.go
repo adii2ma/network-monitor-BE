@@ -3,10 +3,11 @@ package store
 import (
 	"backend/db"
 	"fmt"
+	"log"
 	"time"
 )
 
-func AddIP(ip string, location string) error {
+func AddIP(ip string, location string, name string) error {
 	err := db.RDB.SAdd(db.Ctx, "devices", ip).Err()
 	if err != nil {
 		return err
@@ -17,7 +18,9 @@ func AddIP(ip string, location string) error {
 		"online", "false",
 		"last_seen", "0",
 		"location", location,
+		"name", name,
 	}
+	log.Printf("Adding device %s with location %s and name %s", ip, location, name)
 	return db.RDB.HMSet(db.Ctx, key, fields...).Err()
 }
 

@@ -12,7 +12,7 @@ import (
 func AddHandler(w http.ResponseWriter, r *http.Request) {
 	ip := r.URL.Query().Get("ip")
 	location := r.URL.Query().Get("location")
-
+	name := r.URL.Query().Get("name")
 	if ip == "" {
 		http.Error(w, "Missing ?ip= parameter", http.StatusBadRequest)
 		return
@@ -21,8 +21,12 @@ func AddHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Missing ?location= parameter", http.StatusBadRequest)
 		return
 	}
+	if name == "" {
+		http.Error(w, "Missing ?name= parameter", http.StatusBadRequest)
+		return
+	}
 
-	if err := store.AddIP(ip, location); err != nil {
+	if err := store.AddIP(ip, location, name); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
