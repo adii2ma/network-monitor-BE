@@ -5,11 +5,20 @@ import (
 	"backend/db"
 	pinger "backend/ping"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
 	db.InitRedis()
 	fmt.Println("Server started at :8080")
 

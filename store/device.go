@@ -2,6 +2,7 @@ package store
 
 import (
 	"backend/db"
+	"backend/mail"
 	"fmt"
 	"log"
 	"time"
@@ -50,12 +51,11 @@ func UpdateDeviceStatus(ip string, online bool) error {
 	fields := []interface{}{
 		"online", fmt.Sprintf("%t", online),
 		"last_seen", fmt.Sprintf("%d", timestamp),
-		 
 	}
 	location, err := db.RDB.HGet(db.Ctx, key, "location").Result()
 	if err != nil {
 		log.Printf("Error fetching location for IP %s: %v", ip, err)
-		 
+
 	}
 	fmt.Printf("Device %s is located at: %s\n", ip, location)
 
@@ -82,6 +82,19 @@ func UpdateDeviceStatus(ip string, online bool) error {
 		// Also store in global logs
 		db.RDB.LPush(db.Ctx, "logs", logEntry)
 		db.RDB.LTrim(db.Ctx, "logs", 0, 999) // Keep last 1000 entries
+
+		// Send email notification
+		emailSubject := fmt.Sprintf("Network Alert: Device %s Status Change", ip)
+		emailMessage := fmt.Sprintf("Device <strong>%s</strong> has gone <strong>%s</strong> at <strong>%s</strong>",
+			ip, status, time.Unix(timestamp, 0).Format("2006-01-02 15:04:05"))
+
+		// Send email in a goroutine to avoid blocking
+		go func() {
+			err := mail.SendNotificationMail(emailSubject, emailMessage)
+			if err != nil {
+				log.Printf("Failed to send notification email for device %s: %v", ip, err)
+			}
+		}()
 	}
 
 	return nil
